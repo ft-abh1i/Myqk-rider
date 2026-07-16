@@ -1,0 +1,105 @@
+/* Final mobile layout fix for Delivery setup (step 2). */
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] > .form-section:first-of-type {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+}
+
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] .vehicle-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  gap: 10px !important;
+  margin: 0 0 16px !important;
+  padding: 0 !important;
+}
+
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] .vehicle-option {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] .vehicle-option > span,
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] .vehicle-option input:checked + span {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 48px !important;
+  padding: 0 8px !important;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] #vehicle-number-field {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  grid-column: 1 / -1 !important;
+}
+
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] #vehicle-number-field > span {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 0 8px !important;
+  white-space: normal;
+}
+
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] #vehicle-number {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 54px !important;
+  padding: 0 16px !important;
+  box-sizing: border-box;
+  font-size: 16px !important;
+  text-transform: uppercase;
+}
+
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] #vehicle-number-field small,
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] #vehicle-number-field .field-help,
+#onboarding-screen .onboarding-step-page[data-setup-step="2"] #vehicle-number-field .field-error {
+  display: block !important;
+  width: 100% !important;
+  margin: 7px 0 0 !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+#onboarding-screen .location-copy {
+  min-width: 0;
+}
+
+#onboarding-screen .location-copy small {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  text-overflow: ellipsis;
+}
+
+#onboarding-screen .setup-progress-item small {
+  min-height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  text-align: center;
+}
+
+@media (max-width: 360px) {
+  #onboarding-screen .onboarding-step-page[data-setup-step="2"] .vehicle-grid {
+    gap: 7px !important;
+  }
+
+  #onboarding-screen .onboarding-step-page[data-setup-step="2"] .vehicle-option > span,
+  #onboarding-screen .onboarding-step-page[data-setup-step="2"] .vehicle-option input:checked + span {
+    padding: 0 5px !important;
+    font-size: 12px !important;
+  }
+}
