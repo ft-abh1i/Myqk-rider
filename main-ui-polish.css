@@ -1,0 +1,334 @@
+/* Main app polish: preserve the existing visual language while improving spacing, hierarchy and touch sizing. */
+#main-screen {
+  --main-green: #0c831f;
+  --main-green-soft: #eef9f0;
+  --main-border: #e8e8e8;
+  background: #f7f7f7;
+}
+
+#main-screen .dashboard-topbar {
+  min-height: 76px;
+  padding: max(14px, env(safe-area-inset-top)) 18px 12px;
+  background: rgba(255, 255, 255, .97);
+  border-bottom-color: #eeeeee;
+}
+
+#main-screen .profile-button { gap: 12px; }
+#main-screen .profile-button img {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+}
+#main-screen .profile-button span { gap: 4px; }
+#main-screen .profile-button small {
+  font-size: 11px;
+  line-height: 1.25;
+}
+#main-screen .profile-button strong {
+  font-size: 15px;
+  line-height: 1.25;
+}
+#main-screen .icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+}
+
+#main-screen .main-content {
+  padding: 18px 18px 34px;
+}
+
+#main-screen .availability-card {
+  min-height: 144px;
+  padding: 22px;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .10);
+}
+#main-screen .availability-card h2 {
+  margin: 13px 0 8px;
+  font-size: 24px;
+  line-height: 1.15;
+}
+#main-screen .availability-card p {
+  font-size: 13px;
+  line-height: 1.55;
+}
+#main-screen .availability-badge {
+  padding: 6px 9px;
+  font-size: 9px;
+}
+
+#main-screen .stats-grid {
+  gap: 12px;
+  margin: 14px 0 26px;
+}
+#main-screen .stat-card {
+  min-height: 158px;
+  padding: 17px;
+  border-radius: 18px;
+  border-color: var(--main-border);
+  box-shadow: 0 5px 16px rgba(15, 23, 42, .035);
+}
+#main-screen .stat-icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: var(--main-green-soft);
+  color: var(--main-green);
+}
+#main-screen .stat-card small {
+  font-size: 11px;
+  line-height: 1.35;
+}
+#main-screen .stat-card strong {
+  margin: 6px 0 10px;
+  font-size: 25px;
+  line-height: 1.1;
+}
+#main-screen .stat-link {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+#main-screen .section-title-row {
+  margin: 0 2px 14px;
+  align-items: center;
+}
+#main-screen .section-title-row .eyebrow { margin-bottom: 6px; }
+#main-screen .section-title-row h3 {
+  font-size: 19px;
+  line-height: 1.25;
+}
+#main-screen .count-pill {
+  padding: 7px 10px;
+  font-size: 10px;
+}
+
+#main-screen .empty-state {
+  padding: 34px 24px;
+  border-radius: 21px;
+  background: #ffffff;
+  border-color: #d8d8d8;
+}
+#main-screen .empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--main-green-soft);
+  color: var(--main-green);
+}
+#main-screen .empty-state h3 {
+  margin: 17px 0 8px;
+  font-size: 17px;
+}
+#main-screen .empty-state p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#main-screen .searching-state,
+#main-screen .order-card,
+#main-screen .active-order-card,
+#main-screen .history-card,
+#main-screen .transaction-card,
+#main-screen .info-card,
+#main-screen .menu-card,
+#main-screen .earnings-summary {
+  border-color: var(--main-border);
+  box-shadow: 0 5px 18px rgba(15, 23, 42, .035);
+}
+
+#main-screen .order-card,
+#main-screen .active-order-card {
+  padding: 19px;
+  border-radius: 21px;
+}
+#main-screen .order-card-head,
+#main-screen .active-order-top { margin-bottom: 19px; }
+#main-screen .order-card-head h3,
+#main-screen .active-order-top h3 { font-size: 17px; }
+#main-screen .payout strong { font-size: 23px; }
+#main-screen .route-line { gap: 12px; }
+#main-screen .route-line strong {
+  font-size: 13px;
+  line-height: 1.4;
+}
+#main-screen .route-line p {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+#main-screen .order-meta {
+  margin: 18px 0;
+  padding: 13px 0;
+}
+#main-screen .order-meta > span { font-size: 10px; }
+#main-screen .order-actions { gap: 10px; }
+#main-screen .order-actions .btn,
+#main-screen .active-order-card > .btn {
+  min-height: 50px;
+  border-radius: 14px;
+}
+
+#main-screen .page-heading {
+  padding: 8px 2px 20px;
+}
+#main-screen .page-heading h2 {
+  margin: 4px 0 7px;
+  font-size: 29px;
+  line-height: 1.15;
+}
+#main-screen .page-heading > p:last-child {
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+#main-screen .segmented-control {
+  padding: 5px;
+  margin-bottom: 17px;
+  border-radius: 15px;
+}
+#main-screen .order-tab {
+  min-height: 42px;
+  font-size: 12px;
+}
+
+#main-screen .history-card { padding: 17px; }
+#main-screen .history-head h4 { font-size: 14px; }
+#main-screen .history-head p { font-size: 10px; }
+#main-screen .history-route {
+  margin: 15px 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+#main-screen .history-foot {
+  padding-top: 13px;
+  font-size: 11px;
+}
+
+#main-screen .earnings-hero {
+  padding: 24px;
+  border-radius: 22px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .10);
+}
+#main-screen .earnings-hero small { font-size: 11px; }
+#main-screen .earnings-hero > strong {
+  margin: 10px 0 8px;
+  font-size: 40px;
+}
+#main-screen .earnings-hero p {
+  margin-bottom: 20px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+#main-screen .earnings-hero .btn {
+  min-height: 48px;
+  border-radius: 13px;
+}
+#main-screen .earnings-summary {
+  margin: 13px 0 26px;
+  padding: 17px 5px;
+}
+#main-screen .earnings-summary small { font-size: 10px; }
+#main-screen .earnings-summary strong {
+  margin-top: 6px;
+  font-size: 16px;
+}
+#main-screen .transaction-card {
+  padding: 14px;
+  gap: 13px;
+}
+#main-screen .transaction-icon {
+  width: 42px;
+  height: 42px;
+}
+#main-screen .transaction-card h4 { font-size: 12px; }
+#main-screen .transaction-card p { font-size: 10px; }
+#main-screen .transaction-card strong { font-size: 14px; }
+
+#main-screen .profile-hero {
+  gap: 17px;
+  padding: 12px 2px 21px;
+}
+#main-screen .profile-hero > img {
+  width: 78px;
+  height: 78px;
+  border-radius: 23px;
+}
+#main-screen .profile-hero h2 {
+  margin-bottom: 7px;
+  font-size: 24px;
+}
+#main-screen .profile-hero p {
+  margin-bottom: 9px;
+  font-size: 11px;
+}
+#main-screen .verified-chip { font-size: 10px; }
+#main-screen .profile-stats {
+  padding: 17px 4px;
+  margin-bottom: 13px;
+  border-radius: 18px;
+}
+#main-screen .profile-stats strong { font-size: 19px; }
+#main-screen .profile-stats small {
+  margin-top: 5px;
+  font-size: 9px;
+}
+#main-screen .info-card,
+#main-screen .menu-card {
+  margin-bottom: 13px;
+  border-radius: 18px;
+}
+#main-screen .info-row {
+  min-height: 54px;
+  padding: 0 17px;
+}
+#main-screen .info-row span { font-size: 11px; }
+#main-screen .info-row strong {
+  max-width: 62%;
+  font-size: 12px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+#main-screen .menu-card button {
+  min-height: 58px;
+  padding: 0 16px;
+  gap: 12px;
+  font-size: 12px;
+}
+
+#main-screen .bottom-nav {
+  min-height: calc(70px + env(safe-area-inset-bottom));
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, .98);
+  border-top-color: #e9e9e9;
+}
+#main-screen .nav-item {
+  min-height: 52px;
+  border-radius: 13px;
+  gap: 4px;
+}
+#main-screen .nav-item svg {
+  width: 21px;
+  height: 21px;
+}
+#main-screen .nav-item span {
+  font-size: 9px;
+  line-height: 1.2;
+}
+#main-screen .nav-item.active {
+  color: var(--main-green);
+  background: var(--main-green-soft);
+}
+
+@media (max-height: 700px) {
+  #main-screen .dashboard-topbar { min-height: 66px; }
+  #main-screen .main-content { padding-top: 13px; }
+  #main-screen .availability-card { min-height: 126px; padding: 18px; }
+  #main-screen .availability-card h2 { font-size: 21px; }
+  #main-screen .stat-card { min-height: 138px; padding: 14px; }
+  #main-screen .stat-icon { margin-bottom: 12px; }
+  #main-screen .bottom-nav { min-height: calc(62px + env(safe-area-inset-bottom)); }
+  #main-screen .nav-item { min-height: 46px; }
+}
