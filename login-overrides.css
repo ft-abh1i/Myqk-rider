@@ -1,0 +1,13 @@
+#login-screen .eyebrow {
+  color: #16a34a !important;
+}
+
+#login-screen .btn-google {
+  background: #16a34a !important;
+  color: #ffffff !important;
+}
+
+#login-screen .btn-google:hover,
+#login-screen .btn-google:focus-visible {
+  background: #15803d !important;
+}
