@@ -2,9 +2,17 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: 32px 28px calc(28px + env(safe-area-inset-bottom));
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  padding: env(safe-area-inset-top) 28px env(safe-area-inset-bottom);
   background: #ffffff;
   color: #171717;
+  text-align: center;
 }
 
 #loading-screen::before,
@@ -17,17 +25,20 @@
   width: auto;
   height: auto;
   min-width: 0;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  margin: 0;
   border-radius: 0;
   background: transparent;
   color: transparent;
   box-shadow: none;
   font-size: 0;
   letter-spacing: 0;
+  transform: none;
   animation: loadingBrandIn .45s ease both;
 }
 
@@ -58,9 +69,10 @@
 
 #loading-screen .loader {
   position: relative;
+  flex: 0 0 auto;
   width: min(210px, 62vw);
   height: 4px;
-  margin: 42px 0 20px;
+  margin: 38px 0 18px;
   overflow: hidden;
   border: 0;
   border-radius: 999px;
@@ -79,12 +91,14 @@
 }
 
 #loading-screen .muted {
+  flex: 0 0 auto;
   margin: 0;
   color: #757575;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.5;
   letter-spacing: 0;
+  text-align: center;
 }
 
 #loading-screen .muted::after {
@@ -119,10 +133,6 @@
 }
 
 @media (max-height: 700px) {
-  #loading-screen {
-    padding-top: 24px;
-  }
-
   #loading-screen .brand-mark::before {
     font-size: 34px;
   }
@@ -132,7 +142,7 @@
   }
 
   #loading-screen .loader {
-    margin-top: 34px;
+    margin-top: 32px;
   }
 }
 
