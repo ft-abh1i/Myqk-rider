@@ -1,10 +1,8 @@
-// Replace these placeholder values with your Firebase Web App configuration.
-// Firebase Console → Project settings → Your apps → Web app → SDK setup and configuration.
 export const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_FIREBASE_APP_ID"
+  apiKey: "AIzaSyDbNDNI1a69VDZmLo7Se6LNGPLD6A8_MmE",
+  authDomain: "buyqk-rider.firebaseapp.com",
+  projectId: "buyqk-rider",
+  storageBucket: "buyqk-rider.firebasestorage.app",
+  messagingSenderId: "61147606971",
+  appId: "1:61147606971:web:d69dd4fcf5c0a0fea01e9e"
 };
