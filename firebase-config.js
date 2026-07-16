@@ -15,7 +15,7 @@ loginArtworkStyles.textContent = `
   gap: 0;
   padding: 0 24px calc(22px + env(safe-area-inset-bottom));
   background-color: #101010;
-  background-image: url("./assets/login-bg.webp");
+  background-image: url("./assets/login-bg.png");
   background-repeat: no-repeat;
   background-position: top center;
   background-size: 100% auto;
