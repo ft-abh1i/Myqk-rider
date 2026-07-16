@@ -1,11 +1,8 @@
-// MyQK Rider runs in demo mode until Firebase Console setup is complete.
-// After enabling Google Authentication and Firestore, replace these placeholder values
-// with your Firebase Web App configuration to activate real login and database saving.
 export const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_FIREBASE_APP_ID"
+  apiKey: "AIzaSyDbNDNI1a69VDZmLo7Se6LNGPLD6A8_MmE",
+  authDomain: "buyqk-rider.firebaseapp.com",
+  projectId: "buyqk-rider",
+  storageBucket: "buyqk-rider.firebasestorage.app",
+  messagingSenderId: "61147606971",
+  appId: "1:61147606971:web:d69dd4fcf5c0a0fea01e9e"
 };
