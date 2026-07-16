@@ -1,0 +1,162 @@
+/* Fill almost all usable onboarding space while keeping the flow non-scrollable. */
+@media (min-height: 701px) {
+  #onboarding-screen .onboarding-step-page.active {
+    gap: 0;
+  }
+
+  #onboarding-screen .setup-page-heading {
+    padding: 18px 0 16px;
+  }
+
+  /* Step 1: make the personal-details card consume the remaining height. */
+  #onboarding-screen .onboarding-step-page[data-setup-step="1"] .profile-preview {
+    min-height: 82px;
+    margin-bottom: 16px;
+    padding: 15px 17px;
+  }
+
+  #onboarding-screen .onboarding-step-page[data-setup-step="1"] .profile-preview img {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+  }
+
+  #onboarding-screen .onboarding-step-page[data-setup-step="1"] .form-section {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 16px;
+    padding: 25px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    border-radius: 22px;
+  }
+
+  #onboarding-screen .onboarding-step-page[data-setup-step="1"] .field {
+    margin-top: 0;
+  }
+
+  #onboarding-screen .field > span {
+    margin-bottom: 9px;
+    font-size: 13px;
+  }
+
+  #onboarding-screen .field input {
+    height: 60px;
+    padding: 0 18px;
+    border-radius: 15px;
+    font-size: 16px;
+  }
+
+  /* Step 2: both cards expand vertically instead of leaving an empty lower half. */
+  #onboarding-screen .onboarding-step-page[data-setup-step="2"] .form-section:first-of-type {
+    flex: 1.15 1 0;
+    min-height: 0;
+    margin-bottom: 16px;
+    padding: 24px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    border: 1px solid #ececec;
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, .04);
+  }
+
+  #onboarding-screen .onboarding-step-page[data-setup-step="2"] .form-section:nth-of-type(2) {
+    flex: .72 1 0;
+    min-height: 0;
+    margin-bottom: 16px;
+    padding: 21px;
+    display: flex;
+    align-items: stretch;
+    border-radius: 22px;
+  }
+
+  #onboarding-screen .vehicle-grid {
+    width: 100%;
+    padding: 12px 4px 18px;
+    gap: 26px;
+  }
+
+  #onboarding-screen .vehicle-option svg {
+    display: none !important;
+  }
+
+  #onboarding-screen .vehicle-option span,
+  #onboarding-screen .vehicle-option input:checked + span {
+    min-height: 58px;
+    flex-direction: row;
+    justify-content: center;
+    gap: 11px;
+    font-size: 15px;
+  }
+
+  #onboarding-screen .vehicle-option span::after {
+    width: 22px;
+    height: 22px;
+  }
+
+  #onboarding-screen .location-card {
+    flex: 1;
+    min-height: 0;
+    padding: 18px;
+    border-radius: 19px;
+  }
+
+  #onboarding-screen .location-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+  }
+
+  #onboarding-screen .location-copy strong {
+    font-size: 15px;
+  }
+
+  #onboarding-screen .location-copy small {
+    margin-top: 5px;
+    font-size: 12px;
+  }
+
+  /* Step 3: review card fills all free height above terms and footer. */
+  #onboarding-screen .onboarding-step-page[data-setup-step="3"] .setup-review-card {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 22px;
+  }
+
+  #onboarding-screen .setup-review-row {
+    flex: 1 1 0;
+    min-height: 54px;
+    padding: 0 20px;
+  }
+
+  #onboarding-screen .setup-review-row span {
+    font-size: 12px;
+  }
+
+  #onboarding-screen .setup-review-row strong {
+    font-size: 14px;
+  }
+
+  #onboarding-screen .terms-row {
+    margin: 17px 4px 13px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  #onboarding-screen .setup-actions {
+    padding-top: 14px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+
+  #onboarding-screen .setup-btn,
+  #onboarding-screen #complete-setup-btn {
+    min-height: 60px;
+    border-radius: 15px;
+    font-size: 15px;
+  }
+}
