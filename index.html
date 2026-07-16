@@ -1,1 +1,299 @@
-hi
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="MyQK Rider delivery partner web application" />
+  <title>MyQK Rider</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <section id="loading-screen" class="screen screen-center active" aria-label="Loading">
+      <div class="brand-mark">QK</div>
+      <div class="loader" aria-hidden="true"></div>
+      <p class="muted">Preparing your rider app…</p>
+    </section>
+
+    <section id="login-screen" class="screen screen-center auth-screen" aria-label="Login">
+      <div class="auth-art">
+        <div class="brand-mark brand-mark-large">QK</div>
+        <span class="rider-pill">RIDER</span>
+      </div>
+      <div class="auth-copy">
+        <p class="eyebrow">Delivery Partner</p>
+        <h1>Deliver locally.<br />Earn on your time.</h1>
+        <p>Sign in securely and start receiving nearby delivery requests.</p>
+      </div>
+      <button id="google-login-btn" class="btn btn-google" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.91h5.38a4.6 4.6 0 0 1-1.99 3.02v2.51h3.22c1.88-1.73 2.99-4.28 2.99-7.37Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.61-2.4l-3.22-2.51c-.9.6-2.04.96-3.39.96-2.61 0-4.82-1.76-5.61-4.13H3.07v2.59A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.39 13.92A6.01 6.01 0 0 1 6.08 12c0-.67.12-1.32.31-1.92V7.49H3.07A10 10 0 0 0 2 12c0 1.61.39 3.14 1.07 4.51l3.32-2.59Z"/><path fill="#EA4335" d="M12 5.95c1.47 0 2.79.51 3.83 1.5l2.87-2.87A9.63 9.63 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.32 2.59C7.18 7.71 9.39 5.95 12 5.95Z"/></svg>
+        Continue with Google
+      </button>
+      <p id="auth-mode-note" class="auth-note">Firebase authentication is required.</p>
+    </section>
+
+    <section id="onboarding-screen" class="screen" aria-label="Partner setup">
+      <header class="topbar simple-topbar">
+        <div>
+          <p class="eyebrow">Step 1 of 1</p>
+          <h2>Partner setup</h2>
+        </div>
+        <button id="onboarding-logout-btn" class="icon-btn" type="button" aria-label="Log out">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg>
+        </button>
+      </header>
+
+      <main class="scroll-content onboarding-content">
+        <div class="profile-preview">
+          <img id="onboarding-avatar" alt="Partner avatar" />
+          <div>
+            <strong id="onboarding-email-name">New partner</strong>
+            <span id="onboarding-email">Signed in with Google</span>
+          </div>
+        </div>
+
+        <form id="partner-form" novalidate>
+          <div class="form-section">
+            <div class="section-heading">
+              <span class="section-number">01</span>
+              <div><h3>Personal information</h3><p>Used for your rider account.</p></div>
+            </div>
+            <label class="field">
+              <span>Full name</span>
+              <input id="full-name" name="fullName" type="text" autocomplete="name" placeholder="Your full name" required />
+            </label>
+            <label class="field">
+              <span>Mobile number</span>
+              <input id="phone-number" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="10-digit mobile number" maxlength="10" required />
+            </label>
+            <label class="field">
+              <span>City</span>
+              <input id="city" name="city" type="text" autocomplete="address-level2" placeholder="e.g. Patna" required />
+            </label>
+          </div>
+
+          <div class="form-section">
+            <div class="section-heading">
+              <span class="section-number">02</span>
+              <div><h3>Vehicle details</h3><p>Select how you will deliver.</p></div>
+            </div>
+            <div class="vehicle-grid" role="radiogroup" aria-label="Vehicle type">
+              <label class="vehicle-option">
+                <input type="radio" name="vehicleType" value="Bike" checked />
+                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17a3 3 0 1 0 0 .01M19 17a3 3 0 1 0 0 .01M5 17l3-7h4l2 7M8 10l-2-2M14 10h3l2 4"/></svg>Bike</span>
+              </label>
+              <label class="vehicle-option">
+                <input type="radio" name="vehicleType" value="Scooter" />
+                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17a3 3 0 1 0 0 .01M18 17a3 3 0 1 0 0 .01M8 17h7l-2-7H9M13 10l2-4h3"/></svg>Scooter</span>
+              </label>
+              <label class="vehicle-option">
+                <input type="radio" name="vehicleType" value="Cycle" />
+                <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17a3 3 0 1 0 0 .01M19 17a3 3 0 1 0 0 .01M5 17l4-7 4 7 3-7M9 10h7M11 7h3"/></svg>Cycle</span>
+              </label>
+            </div>
+            <label class="field" id="vehicle-number-field">
+              <span>Vehicle number</span>
+              <input id="vehicle-number" name="vehicleNumber" type="text" autocapitalize="characters" placeholder="BR 01 AB 1234" required />
+            </label>
+          </div>
+
+          <div class="form-section">
+            <div class="section-heading">
+              <span class="section-number">03</span>
+              <div><h3>Live location</h3><p>Needed to find nearby orders.</p></div>
+            </div>
+            <button id="location-btn" class="location-card" type="button">
+              <span class="location-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <span class="location-copy"><strong id="location-title">Allow live location</strong><small id="location-status">Tap to share your current location</small></span>
+              <span id="location-check" class="status-dot"></span>
+            </button>
+          </div>
+
+          <label class="terms-row">
+            <input id="terms-checkbox" type="checkbox" required />
+            <span>I agree to the <button id="terms-link" type="button">Partner Terms & Conditions</button> and location usage policy.</span>
+          </label>
+
+          <button id="complete-setup-btn" class="btn btn-primary" type="submit">Complete setup</button>
+        </form>
+      </main>
+    </section>
+
+    <section id="main-screen" class="screen app-screen" aria-label="Rider dashboard">
+      <header class="topbar dashboard-topbar">
+        <button id="header-profile-btn" class="profile-button" type="button" aria-label="Open profile">
+          <img id="header-avatar" alt="Profile" />
+          <span><small>Welcome back</small><strong id="header-name">Partner</strong></span>
+        </button>
+        <div class="topbar-actions">
+          <button id="notification-btn" class="icon-btn" type="button" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+            <span class="notification-dot"></span>
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content" class="scroll-content main-content">
+        <section id="home-view" class="view active">
+          <div class="availability-card">
+            <div>
+              <span id="availability-badge" class="availability-badge offline">Offline</span>
+              <h2 id="availability-title">You are offline</h2>
+              <p id="availability-text">Go online to receive nearby delivery requests.</p>
+            </div>
+            <label class="online-switch" aria-label="Online status">
+              <input id="online-toggle" type="checkbox" />
+              <span class="switch-track"><span class="switch-thumb"></span></span>
+            </label>
+          </div>
+
+          <div class="stats-grid">
+            <button class="stat-card" data-nav="earnings" type="button">
+              <span class="stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 8h12M6 13h5a5 5 0 0 1 0 10M6 13l10 10M6 8c0 3 2 5 5 5"/></svg></span>
+              <small>Today's earnings</small>
+              <strong id="today-earnings">₹0</strong>
+              <span class="stat-link">View earnings</span>
+            </button>
+            <div class="stat-card">
+              <span class="stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></svg></span>
+              <small>Deliveries</small>
+              <strong id="today-deliveries">0</strong>
+              <span class="stat-link">Completed today</span>
+            </div>
+          </div>
+
+          <div class="section-title-row">
+            <div><p class="eyebrow">Live jobs</p><h3>Delivery requests</h3></div>
+            <span id="request-count" class="count-pill">0 available</span>
+          </div>
+
+          <div id="offline-state" class="empty-state">
+            <div class="empty-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M12 3v18"/></svg></div>
+            <h3>Go online to start</h3>
+            <p>Nearby delivery requests will appear here when you are active.</p>
+          </div>
+
+          <div id="searching-state" class="searching-state hidden">
+            <div class="radar"><span></span><span></span><i></i></div>
+            <div><strong>Finding nearby orders</strong><p>Keep this screen open while we search.</p></div>
+          </div>
+
+          <div id="order-request" class="order-card hidden">
+            <div class="order-card-head">
+              <div><span class="new-order-label">NEW ORDER</span><h3 id="order-id">#QK2048</h3></div>
+              <div class="payout"><small>Earn</small><strong id="order-payout">₹42</strong></div>
+            </div>
+            <div class="route-line">
+              <span class="route-point pickup"></span>
+              <div><small>Pickup</small><strong id="pickup-store">Fresh Basket, Bailey Road</strong><p id="pickup-distance">1.2 km away</p></div>
+            </div>
+            <div class="route-connector"></div>
+            <div class="route-line">
+              <span class="route-point drop"></span>
+              <div><small>Drop</small><strong id="drop-area">Boring Road, Patna</strong><p id="order-distance">4.8 km total</p></div>
+            </div>
+            <div class="order-meta">
+              <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="order-time">22 min</span></span>
+              <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4zM8 3v6M16 3v6"/></svg><span id="order-items">5 items</span></span>
+              <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v10H3zM7 12h.01M17 12h.01"/></svg><span id="payment-mode">Prepaid</span></span>
+            </div>
+            <div class="order-actions">
+              <button id="reject-order-btn" class="btn btn-secondary" type="button">Skip</button>
+              <button id="accept-order-btn" class="btn btn-primary" type="button">Accept order</button>
+            </div>
+          </div>
+
+          <div id="active-order-card" class="active-order-card hidden">
+            <div class="active-order-top">
+              <div><span id="active-step-label" class="active-chip">TO PICKUP</span><h3 id="active-order-id">Order #QK2048</h3></div>
+              <button id="call-action-btn" class="circle-action" type="button" aria-label="Call"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-3 2a14 14 0 0 0 5 5l2-3 5 2v4c0 1-1 2-2 2C9 20 4 15 3 6c0-1 1-2 2-2Z"/></svg></button>
+            </div>
+            <div class="progress-track"><span id="active-progress"></span></div>
+            <div class="active-destination">
+              <span id="active-location-icon" class="location-icon small"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-4.35 7-11a7 7 0 1 0-14 0c0 6.65 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <div><small id="active-destination-type">Pickup from</small><strong id="active-destination-name">Fresh Basket</strong><p id="active-destination-address">Bailey Road, Patna</p></div>
+            </div>
+            <button id="open-navigation-btn" class="navigation-btn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-8-8 18-2-8-8-2Z"/></svg>Open navigation</button>
+            <button id="advance-order-btn" class="btn btn-primary" type="button">I have arrived</button>
+          </div>
+        </section>
+
+        <section id="orders-view" class="view">
+          <div class="page-heading"><p class="eyebrow">Activity</p><h2>Your orders</h2><p>Track active and completed deliveries.</p></div>
+          <div class="segmented-control" role="tablist">
+            <button class="order-tab active" data-filter="all" type="button">All</button>
+            <button class="order-tab" data-filter="completed" type="button">Completed</button>
+            <button class="order-tab" data-filter="cancelled" type="button">Cancelled</button>
+          </div>
+          <div id="orders-list" class="orders-list"></div>
+        </section>
+
+        <section id="earnings-view" class="view">
+          <div class="page-heading"><p class="eyebrow">Payouts</p><h2>Earnings</h2><p>Your delivery income at a glance.</p></div>
+          <div class="earnings-hero">
+            <small>Available balance</small>
+            <strong id="available-balance">₹0</strong>
+            <p>Settlements are processed to your linked account.</p>
+            <button id="withdraw-btn" class="btn btn-light" type="button">Request payout</button>
+          </div>
+          <div class="earnings-summary">
+            <div><small>Today</small><strong id="earnings-today">₹0</strong></div>
+            <div><small>This week</small><strong id="earnings-week">₹0</strong></div>
+            <div><small>Total</small><strong id="earnings-total">₹0</strong></div>
+          </div>
+          <div class="section-title-row"><div><p class="eyebrow">Recent</p><h3>Transactions</h3></div></div>
+          <div id="transactions-list" class="transactions-list"></div>
+        </section>
+
+        <section id="profile-view" class="view">
+          <div class="profile-hero">
+            <img id="profile-avatar" alt="Partner profile" />
+            <div><h2 id="profile-name">Partner</h2><p id="profile-email">partner@example.com</p><span class="verified-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 12 3 3 5-6"/><circle cx="12" cy="12" r="9"/></svg>Verified account</span></div>
+          </div>
+          <div class="profile-stats">
+            <div><strong id="profile-rating">4.9</strong><small>Rating</small></div>
+            <div><strong id="profile-deliveries">0</strong><small>Deliveries</small></div>
+            <div><strong id="profile-online-hours">0h</strong><small>Online</small></div>
+          </div>
+          <div class="info-card">
+            <div class="info-row"><span>Mobile</span><strong id="profile-phone">—</strong></div>
+            <div class="info-row"><span>City</span><strong id="profile-city">—</strong></div>
+            <div class="info-row"><span>Vehicle</span><strong id="profile-vehicle">—</strong></div>
+            <div class="info-row"><span>Vehicle number</span><strong id="profile-vehicle-number">—</strong></div>
+          </div>
+          <div class="menu-card">
+            <button id="edit-profile-btn" type="button"><span class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4-1 11-11-3-3L5 16l-1 4ZM14 6l3 3"/></svg></span><span>Edit partner details</span><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+            <button id="support-btn" type="button"><span class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.33c-.9.38-.9 1.17-.9 1.67M12 17h.01"/></svg></span><span>Help & support</span><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+            <button id="logout-btn" class="danger-row" type="button"><span class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg></span><span>Log out</span><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-view="home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9H3v-9ZM9 20v-6h6v6"/></svg><span>Home</span></button>
+        <button class="nav-item" data-view="orders" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></svg><span>Orders</span></button>
+        <button class="nav-item" data-view="earnings" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 8h12M6 13h5a5 5 0 0 1 0 10M6 13l10 10M6 8c0 3 2 5 5 5"/></svg><span>Earnings</span></button>
+        <button class="nav-item" data-view="profile" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span></button>
+      </nav>
+    </section>
+
+    <div id="terms-modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal="terms-modal"></div>
+      <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="terms-title">
+        <div class="modal-handle"></div>
+        <div class="modal-header"><h3 id="terms-title">Partner Terms</h3><button class="icon-btn" data-close-modal="terms-modal" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+        <div class="modal-body"><p>By joining MyQK Rider, you confirm that your submitted details are correct, you will follow delivery and safety instructions, and you allow location access while using the service to receive and complete orders.</p><p>This prototype does not yet perform identity, licence, bank, or background verification. These checks must be added before production use.</p></div>
+        <button class="btn btn-primary" data-close-modal="terms-modal" type="button">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
