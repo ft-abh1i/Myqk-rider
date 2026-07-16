@@ -1,0 +1,143 @@
+#loading-screen {
+  isolation: isolate;
+  overflow: hidden;
+  padding: 34px;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(248, 203, 70, .14), transparent 28%),
+    linear-gradient(160deg, #071a3b 0%, #06142e 52%, #030b19 100%);
+  color: #ffffff;
+}
+
+#loading-screen::before,
+#loading-screen::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  border: 1px solid rgba(248, 203, 70, .09);
+}
+
+#loading-screen::before {
+  width: 280px;
+  height: 280px;
+  top: -145px;
+  right: -130px;
+}
+
+#loading-screen::after {
+  width: 220px;
+  height: 220px;
+  bottom: -120px;
+  left: -110px;
+}
+
+#loading-screen .brand-mark {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  border-radius: 27px;
+  color: #071a3b;
+  background: #f8cb46;
+  box-shadow: 0 20px 55px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255, 255, 255, .12);
+  font-size: 31px;
+  letter-spacing: -1.5px;
+  animation: loadingLogoFloat 2.2s ease-in-out infinite;
+}
+
+#loading-screen .brand-mark::after {
+  content: "RIDER";
+  position: absolute;
+  right: -23px;
+  bottom: -9px;
+  padding: 6px 9px;
+  border: 3px solid #071a3b;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #071a3b;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+#loading-screen .loader {
+  position: relative;
+  width: min(190px, 58vw);
+  height: 4px;
+  margin: 44px 0 19px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .14);
+  animation: none;
+}
+
+#loading-screen .loader::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 46%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f8cb46, #ffe49a);
+  box-shadow: 0 0 18px rgba(248, 203, 70, .45);
+  animation: loadingBar 1.25s ease-in-out infinite;
+}
+
+#loading-screen .muted {
+  margin: 0;
+  color: #d5dbea;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+#loading-screen .muted::after {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: 15px auto 0;
+  border-radius: 50%;
+  background: #f8cb46;
+  box-shadow: -12px 0 0 rgba(248, 203, 70, .4), 12px 0 0 rgba(248, 203, 70, .4);
+  animation: loadingDots 1.2s ease-in-out infinite;
+}
+
+@keyframes loadingLogoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes loadingBar {
+  0% { transform: translateX(-115%); }
+  55%, 100% { transform: translateX(250%); }
+}
+
+@keyframes loadingDots {
+  0%, 100% { opacity: .4; transform: scale(.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (max-height: 700px) {
+  #loading-screen .brand-mark {
+    width: 78px;
+    height: 78px;
+    border-radius: 23px;
+    font-size: 27px;
+  }
+
+  #loading-screen .loader {
+    margin-top: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #loading-screen .brand-mark,
+  #loading-screen .loader::after,
+  #loading-screen .muted::after {
+    animation: none;
+  }
+
+  #loading-screen .loader::after {
+    width: 100%;
+  }
+}
