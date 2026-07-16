@@ -31,6 +31,25 @@ function isValidIndianVehicleNumber(value = "") {
   return STANDARD_VEHICLE_NUMBER.test(normalized) || BH_VEHICLE_NUMBER.test(normalized);
 }
 
+function validateVehicleNumber({ report = true } = {}) {
+  if (!vehicleNumberInput) return true;
+
+  const selectedVehicle = document.querySelector('input[name="vehicleType"]:checked')?.value;
+  if (selectedVehicle === "Cycle") {
+    vehicleNumberInput.setCustomValidity("");
+    return true;
+  }
+
+  const valid = isValidIndianVehicleNumber(vehicleNumberInput.value);
+  vehicleNumberInput.setCustomValidity(valid ? "" : "Enter a valid Indian vehicle number, e.g. BR 01 AB 1234.");
+
+  if (!valid && report) {
+    vehicleNumberInput.reportValidity();
+    vehicleNumberInput.focus();
+  }
+  return valid;
+}
+
 if (vehicleNumberInput) {
   vehicleNumberInput.maxLength = 15;
   vehicleNumberInput.autocomplete = "off";
@@ -48,16 +67,22 @@ if (vehicleNumberInput) {
     vehicleNumberInput.setCustomValidity("");
   });
 
-  vehicleNumberInput.addEventListener("blur", () => {
-    const selectedVehicle = document.querySelector('input[name="vehicleType"]:checked')?.value;
-    if (selectedVehicle !== "Cycle" && vehicleNumberInput.value.trim() && !isValidIndianVehicleNumber(vehicleNumberInput.value)) {
-      vehicleNumberInput.setCustomValidity("Enter a valid Indian vehicle number, e.g. BR 01 AB 1234.");
-      vehicleNumberInput.reportValidity();
-    } else {
-      vehicleNumberInput.setCustomValidity("");
-    }
-  });
+  vehicleNumberInput.addEventListener("blur", () => validateVehicleNumber({ report: Boolean(vehicleNumberInput.value.trim()) }));
 }
+
+document.querySelector("#setup-next-2")?.addEventListener("click", (event) => {
+  if (!validateVehicleNumber()) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }
+}, true);
+
+document.querySelector("#partner-form")?.addEventListener("submit", (event) => {
+  if (!validateVehicleNumber()) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }
+}, true);
 
 let lastCoordinates = "";
 let reverseRequestId = 0;
