@@ -1,73 +1,70 @@
 #loading-screen {
+  position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: 34px;
-  background:
-    radial-gradient(circle at 50% 36%, rgba(248, 203, 70, .14), transparent 28%),
-    linear-gradient(160deg, #071a3b 0%, #06142e 52%, #030b19 100%);
-  color: #ffffff;
+  padding: 32px 28px calc(28px + env(safe-area-inset-bottom));
+  background: #ffffff;
+  color: #171717;
 }
 
 #loading-screen::before,
 #loading-screen::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  border-radius: 50%;
-  border: 1px solid rgba(248, 203, 70, .09);
+  display: none;
 }
 
-#loading-screen::before {
-  width: 280px;
-  height: 280px;
-  top: -145px;
-  right: -130px;
-}
-
-#loading-screen::after {
-  width: 220px;
-  height: 220px;
-  bottom: -120px;
-  left: -110px;
-}
-
+/* Reuse the existing markup as a clean text-based brand lockup. */
 #loading-screen .brand-mark {
-  position: relative;
-  width: 92px;
-  height: 92px;
-  border-radius: 27px;
-  color: #071a3b;
-  background: #f8cb46;
-  box-shadow: 0 20px 55px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255, 255, 255, .12);
-  font-size: 31px;
-  letter-spacing: -1.5px;
-  animation: loadingLogoFloat 2.2s ease-in-out infinite;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 0;
+  background: transparent;
+  color: transparent;
+  box-shadow: none;
+  font-size: 0;
+  letter-spacing: 0;
+  animation: loadingBrandIn .45s ease both;
+}
+
+#loading-screen .brand-mark::before {
+  content: "BuyQK";
+  display: block;
+  color: #171717;
+  font-size: clamp(34px, 9vw, 42px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1.8px;
 }
 
 #loading-screen .brand-mark::after {
-  content: "RIDER";
-  position: absolute;
-  right: -23px;
-  bottom: -9px;
-  padding: 6px 9px;
-  border: 3px solid #071a3b;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #071a3b;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: .16em;
+  content: "Delivery Partner";
+  position: static;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #0c831f;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .02em;
 }
 
 #loading-screen .loader {
   position: relative;
-  width: min(190px, 58vw);
+  width: min(210px, 62vw);
   height: 4px;
-  margin: 44px 0 19px;
+  margin: 42px 0 20px;
   overflow: hidden;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .14);
+  background: #e8f3ea;
   animation: none;
 }
 
@@ -75,54 +72,63 @@
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: 46%;
+  width: 42%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #f8cb46, #ffe49a);
-  box-shadow: 0 0 18px rgba(248, 203, 70, .45);
-  animation: loadingBar 1.25s ease-in-out infinite;
+  background: #0c831f;
+  animation: loadingBar 1.15s ease-in-out infinite;
 }
 
 #loading-screen .muted {
   margin: 0;
-  color: #d5dbea;
+  color: #757575;
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .02em;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0;
 }
 
 #loading-screen .muted::after {
-  content: "";
+  content: "Securely verifying account";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
   display: block;
-  width: 4px;
-  height: 4px;
-  margin: 15px auto 0;
-  border-radius: 50%;
-  background: #f8cb46;
-  box-shadow: -12px 0 0 rgba(248, 203, 70, .4), 12px 0 0 rgba(248, 203, 70, .4);
-  animation: loadingDots 1.2s ease-in-out infinite;
+  width: auto;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #a0a0a0;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  animation: none;
 }
 
-@keyframes loadingLogoFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-7px); }
+@keyframes loadingBrandIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes loadingBar {
-  0% { transform: translateX(-115%); }
+  0% { transform: translateX(-120%); }
   55%, 100% { transform: translateX(250%); }
 }
 
-@keyframes loadingDots {
-  0%, 100% { opacity: .4; transform: scale(.85); }
-  50% { opacity: 1; transform: scale(1); }
-}
-
 @media (max-height: 700px) {
-  #loading-screen .brand-mark {
-    width: 78px;
-    height: 78px;
-    border-radius: 23px;
-    font-size: 27px;
+  #loading-screen {
+    padding-top: 24px;
+  }
+
+  #loading-screen .brand-mark::before {
+    font-size: 34px;
+  }
+
+  #loading-screen .brand-mark::after {
+    font-size: 13px;
   }
 
   #loading-screen .loader {
@@ -132,12 +138,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   #loading-screen .brand-mark,
-  #loading-screen .loader::after,
-  #loading-screen .muted::after {
+  #loading-screen .loader::after {
     animation: none;
   }
 
   #loading-screen .loader::after {
     width: 100%;
+    transform: none;
   }
 }
