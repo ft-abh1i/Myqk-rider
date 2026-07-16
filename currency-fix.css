@@ -1,4 +1,23 @@
-/* Keep rupee symbols and amounts aligned consistently across the rider app. */
+/* Use the native ₹ glyph consistently across the rider app. */
+#main-screen #today-earnings,
+#main-screen #available-balance,
+#main-screen #earnings-today,
+#main-screen #earnings-week,
+#main-screen #earnings-total,
+#main-screen #order-payout,
+#main-screen .payout strong,
+#main-screen .transaction-card > strong,
+#main-screen .history-foot strong,
+#main-screen .earnings-hero > strong {
+  white-space: nowrap;
+  font-family: Arial, "Noto Sans", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-synthesis: none;
+  letter-spacing: 0;
+  line-height: 1.1;
+}
+
 #main-screen #today-earnings,
 #main-screen #available-balance,
 #main-screen #earnings-today,
@@ -8,36 +27,14 @@
 #main-screen .payout strong,
 #main-screen .transaction-card > strong,
 #main-screen .history-foot strong {
-  display: inline-flex;
-  align-items: baseline;
-  white-space: nowrap;
-  font-family: "Inter", system-ui, sans-serif;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: "tnum" 1, "lnum" 1;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  display: inline-block;
+  vertical-align: baseline;
 }
 
 #main-screen .earnings-hero > strong {
-  display: flex;
-  align-items: baseline;
+  display: block;
   min-height: 46px;
-  white-space: nowrap;
-  font-family: "Inter", system-ui, sans-serif;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-feature-settings: "tnum" 1, "lnum" 1;
-  letter-spacing: -0.045em;
   line-height: 1;
-}
-
-/* Inter already has a clean rupee glyph; avoid synthetic weight and vertical shifting. */
-#main-screen #today-earnings,
-#main-screen #available-balance,
-#main-screen #earnings-today,
-#main-screen #earnings-week,
-#main-screen #earnings-total,
-#main-screen #order-payout {
-  font-synthesis: none;
 }
 
 @media (max-width: 360px) {
