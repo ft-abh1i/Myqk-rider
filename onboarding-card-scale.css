@@ -1,0 +1,164 @@
+/* Use the available viewport space without making onboarding scrollable. */
+#onboarding-screen .vehicle-option svg {
+  display: none !important;
+}
+
+#onboarding-screen .vehicle-option span,
+#onboarding-screen .vehicle-option input:checked + span {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #4f4f4f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#onboarding-screen .vehicle-option input:checked + span {
+  color: var(--setup-green);
+}
+
+#onboarding-screen .vehicle-option span::after {
+  width: 20px;
+  height: 20px;
+}
+
+@media (min-height: 701px) {
+  #onboarding-screen .setup-page-heading {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  #onboarding-screen .profile-preview {
+    min-height: 76px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+
+  #onboarding-screen .profile-preview img {
+    width: 52px;
+    height: 52px;
+  }
+
+  #onboarding-screen .onboarding-step-page[data-setup-step="1"] .form-section {
+    min-height: clamp(270px, 37dvh, 320px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 22px 20px;
+  }
+
+  #onboarding-screen .field {
+    margin-top: 16px;
+  }
+
+  #onboarding-screen .field > span {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  #onboarding-screen .field input {
+    height: 56px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-size: 15px;
+  }
+
+  /* One large vehicle-details card; choices inside remain plain radio options. */
+  #onboarding-screen .onboarding-step-page[data-setup-step="2"] .form-section:first-of-type {
+    min-height: clamp(205px, 28dvh, 245px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 22px 20px;
+    border: 1px solid #ececec;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, .04);
+  }
+
+  #onboarding-screen .vehicle-grid {
+    gap: 22px;
+    padding: 8px 4px 12px;
+  }
+
+  #onboarding-screen .vehicle-option span,
+  #onboarding-screen .vehicle-option input:checked + span {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  #onboarding-screen .onboarding-step-page[data-setup-step="2"] .form-section:nth-of-type(2) {
+    min-height: clamp(125px, 17dvh, 155px);
+    display: flex;
+    align-items: center;
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  #onboarding-screen .location-card {
+    min-height: 92px;
+    padding: 16px;
+    border-radius: 17px;
+  }
+
+  #onboarding-screen .location-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+  }
+
+  #onboarding-screen .location-copy strong {
+    font-size: 14px;
+  }
+
+  #onboarding-screen .location-copy small {
+    margin-top: 3px;
+    font-size: 11px;
+  }
+
+  #onboarding-screen .setup-review-card {
+    min-height: clamp(286px, 38dvh, 330px);
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+  }
+
+  #onboarding-screen .setup-review-row {
+    flex: 1;
+    min-height: 48px;
+    padding: 0 18px;
+  }
+
+  #onboarding-screen .setup-review-row span {
+    font-size: 11px;
+  }
+
+  #onboarding-screen .setup-review-row strong {
+    font-size: 13px;
+  }
+
+  #onboarding-screen .terms-row {
+    margin-top: 16px;
+    font-size: 11px;
+  }
+
+  #onboarding-screen .setup-btn,
+  #onboarding-screen #complete-setup-btn {
+    min-height: 58px;
+    font-size: 14px;
+  }
+}
+
+@media (max-height: 700px) {
+  #onboarding-screen .vehicle-option span,
+  #onboarding-screen .vehicle-option input:checked + span {
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  #onboarding-screen .vehicle-option span::after {
+    width: 16px;
+    height: 16px;
+  }
+}
