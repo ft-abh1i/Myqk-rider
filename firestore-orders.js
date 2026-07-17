@@ -2,6 +2,7 @@ import { firebaseConfig } from "./firebase-config.js";
 
 const FIREBASE_VERSION = "10.12.5";
 const MAX_ORDER_DISTANCE_KM = 8;
+const ACTIVE_STATUSES = ["accepted", "arrived_pickup", "picked_up"];
 
 const $ = (selector) => document.querySelector(selector);
 const state = {
@@ -83,6 +84,117 @@ function normalizedOrder(snapshot) {
   };
 }
 
+function storageKey(name) {
+  return `myqk_rider_${state.user?.uid || "guest"}_${name}`;
+}
+
+function readStored(name, fallback) {
+  try {
+    const value = localStorage.getItem(storageKey(name));
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStored(name, value) {
+  localStorage.setItem(storageKey(name), JSON.stringify(value));
+}
+
+function refreshEarningsUi(stats) {
+  const rupees = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
+  const values = {
+    "#today-earnings": rupees(stats.todayEarnings),
+    "#today-deliveries": stats.deliveriesToday,
+    "#available-balance": rupees(stats.availableBalance),
+    "#earnings-today": rupees(stats.todayEarnings),
+    "#earnings-week": rupees(stats.weeklyEarnings),
+    "#earnings-total": rupees(stats.totalEarnings),
+    "#profile-deliveries": stats.totalDeliveries
+  };
+  Object.entries(values).forEach(([selector, value]) => {
+    const element = $(selector);
+    if (element) element.textContent = value;
+  });
+}
+
+function renderRealHistory(history) {
+  const list = $("#orders-list");
+  if (!list) return;
+  if (!history.length) {
+    list.innerHTML = '<div class="empty-list">No orders in this section yet.</div>';
+    return;
+  }
+  list.innerHTML = history.map((order) => {
+    const date = new Date(order.completedAt || Date.now()).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    return `<article class="history-card">
+      <div class="history-head"><div><h4>Order #${order.id}</h4><p>${date}</p></div><span class="history-status completed">completed</span></div>
+      <div class="history-route"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg><span>${order.pickup} → ${order.drop}</span></div>
+      <div class="history-foot"><span>${order.distance}</span><strong>+₹${order.payout}</strong></div>
+    </article>`;
+  }).join("");
+}
+
+function renderRealTransactions(history) {
+  const list = $("#transactions-list");
+  if (!list) return;
+  if (!history.length) {
+    list.innerHTML = '<div class="empty-list">Completed delivery earnings will appear here.</div>';
+    return;
+  }
+  list.innerHTML = history.map((order) => {
+    const date = new Date(order.completedAt || Date.now()).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    return `<article class="transaction-card">
+      <span class="transaction-icon"><svg viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></svg></span>
+      <div><h4>Delivery #${order.id}</h4><p>${date}</p></div><strong>+₹${order.payout}</strong>
+    </article>`;
+  }).join("");
+}
+
+function recordCompletedOrder(order) {
+  if (!order || !state.user) return;
+  const history = readStored("orders", []);
+  if (history.some((item) => item.firestoreId === order.firestoreId)) return;
+
+  const completed = {
+    firestoreId: order.firestoreId,
+    id: order.id,
+    pickup: order.pickup,
+    pickupAddress: order.pickupAddress,
+    drop: order.drop,
+    dropAddress: order.dropAddress,
+    distance: order.distance,
+    payout: order.payout,
+    status: "completed",
+    completedAt: new Date().toISOString()
+  };
+  const nextHistory = [completed, ...history];
+  writeStored("orders", nextHistory);
+
+  const defaults = {
+    todayEarnings: 0,
+    weeklyEarnings: 0,
+    totalEarnings: 0,
+    availableBalance: 0,
+    deliveriesToday: 0,
+    totalDeliveries: 0,
+    onlineMinutes: 0,
+    rating: 4.9
+  };
+  const stats = { ...defaults, ...readStored("stats", {}) };
+  stats.todayEarnings += order.payout;
+  stats.weeklyEarnings += order.payout;
+  stats.totalEarnings += order.payout;
+  stats.availableBalance += order.payout;
+  stats.deliveriesToday += 1;
+  stats.totalDeliveries += 1;
+  writeStored("stats", stats);
+
+  refreshEarningsUi(stats);
+  renderRealHistory(nextHistory);
+  renderRealTransactions(nextHistory);
+}
+
 function setOnlineUi(online) {
   state.online = online;
   const toggle = $("#online-toggle");
@@ -92,7 +204,7 @@ function setOnlineUi(online) {
   $("#availability-title").textContent = online ? "You are online" : "You are offline";
   $("#availability-text").textContent = online
     ? "Stay ready. New requests will appear automatically."
-    : "Go online to receive nearby delivery requests.";
+    : state.activeOrder ? "Complete your active delivery before taking another order." : "Go online to receive nearby delivery requests.";
   $("#offline-state").classList.toggle("hidden", online || Boolean(state.activeOrder));
   $("#searching-state").classList.toggle("hidden", !online || Boolean(state.visibleOrder) || Boolean(state.activeOrder));
   if (!online) {
@@ -167,7 +279,7 @@ function listenForPendingOrders() {
 
 async function acceptVisibleOrder() {
   const order = state.visibleOrder;
-  if (!order || !state.user) return;
+  if (!order || !state.user || state.activeOrder) return;
   const button = $("#accept-order-btn");
   button.disabled = true;
   button.textContent = "Accepting…";
@@ -216,8 +328,11 @@ function listenToActiveOrder(orderId) {
     state.activeOrder = { ...state.activeOrder, ...fresh };
     const statusToStep = { accepted: 0, arrived_pickup: 1, picked_up: 2 };
     if (statusToStep[fresh.status] !== undefined) state.step = statusToStep[fresh.status];
-    if (fresh.status === "completed" || fresh.status === "cancelled") finishOrderLocally(fresh.status);
+    if (fresh.status === "completed" || fresh.status === "cancelled") finishOrderLocally(fresh.status, fresh);
     else renderActiveOrder();
+  }, (error) => {
+    console.error("Active order listener failed", error);
+    toast("Active order sync nahi hua.", true);
   });
 }
 
@@ -264,13 +379,14 @@ async function advanceActiveOrder() {
   }
 }
 
-function finishOrderLocally(status) {
+function finishOrderLocally(status, finishedOrder = state.activeOrder) {
+  if (status === "completed") recordCompletedOrder(finishedOrder);
   state.unsubscribeActive?.();
   state.unsubscribeActive = null;
   state.activeOrder = null;
   state.step = 0;
   $("#active-order-card").classList.add("hidden");
-  toast(status === "completed" ? "Delivery completed." : "Order cancelled.");
+  toast(status === "completed" ? "Delivery completed. Earnings added." : "Order cancelled.");
   showNextPendingOrder();
 }
 
@@ -291,9 +407,36 @@ async function loadRiderProfile() {
   state.profile = snapshot.exists() ? snapshot.data() : null;
 }
 
+async function restoreActiveOrder() {
+  if (!state.user || !state.db || !state.profile?.onboardingComplete) return;
+  const assignedQuery = state.api.query(
+    state.api.collection(state.db, "orders"),
+    state.api.where("assignedRiderId", "==", state.user.uid),
+    state.api.limit(20)
+  );
+  const snapshot = await state.api.getDocs(assignedQuery);
+  const activeSnapshot = snapshot.docs.find((docSnapshot) => ACTIVE_STATUSES.includes(docSnapshot.data().status));
+  if (!activeSnapshot) return;
+
+  state.activeOrder = normalizedOrder(activeSnapshot);
+  state.step = { accepted: 0, arrived_pickup: 1, picked_up: 2 }[state.activeOrder.status] ?? 0;
+  $("#order-request").classList.add("hidden");
+  $("#searching-state").classList.add("hidden");
+  $("#offline-state").classList.add("hidden");
+  $("#active-order-card").classList.remove("hidden");
+  $("#request-count").textContent = "1 active";
+  renderActiveOrder();
+  listenToActiveOrder(state.activeOrder.firestoreId);
+}
+
 async function handleOnlineToggle(event) {
   event.stopImmediatePropagation();
   const online = event.target.checked;
+  if (online && state.activeOrder) {
+    event.target.checked = false;
+    toast("Pehle active delivery complete karo.", true);
+    return;
+  }
   if (online && !state.profile?.location) {
     event.target.checked = false;
     toast("Pehle profile me live location allow karo.", true);
@@ -349,12 +492,17 @@ async function initialize() {
       state.user = user;
       state.unsubscribeOrders?.();
       state.unsubscribeActive?.();
+      state.pendingOrders = [];
+      state.visibleOrder = null;
+      state.activeOrder = null;
       if (!user) return;
       try {
         await loadRiderProfile();
+        await restoreActiveOrder();
         setOnlineUi(false);
       } catch (error) {
-        console.error("Rider profile load failed", error);
+        console.error("Rider profile/order restore failed", error);
+        toast("Rider data restore nahi hua.", true);
       }
     });
   } catch (error) {
