@@ -1,8 +1,8 @@
 import { firebaseConfig } from "./firebase-config.js";
 
 const FIREBASE_VERSION = "10.12.5";
-const UPDATE_INTERVAL_MS = 60_000;
-const MIN_MOVEMENT_METERS = 75;
+const UPDATE_INTERVAL_MS = 25_000;
+const MIN_MOVEMENT_METERS = 40;
 const ACTIVE_STATUSES = ["accepted", "arrived_pickup", "picked_up"];
 
 const state = {
@@ -119,7 +119,7 @@ function requestHeartbeatLocation() {
   navigator.geolocation.getCurrentPosition(
     (position) => handlePosition(position, true),
     (error) => console.warn("Rider heartbeat location unavailable:", error),
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 15000 }
   );
 }
 
@@ -129,7 +129,7 @@ function startTracking() {
   state.watchId = navigator.geolocation.watchPosition(
     (position) => handlePosition(position, false),
     (error) => console.warn("Rider live location unavailable:", error),
-    { enableHighAccuracy: true, timeout: 20000, maximumAge: 15000 }
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 }
   );
 
   requestHeartbeatLocation();
