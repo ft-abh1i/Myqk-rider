@@ -3,3 +3,4 @@ import "./app-core.js";
 import "./firestore-orders.js";
 import "./location-address.js";
 import "./rider-live-location.js";
+import "./nearby-order-refresh.js";
