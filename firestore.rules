@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function riderProfile() {
+      return get(/databases/$(database)/documents/riders/$(request.auth.uid));
+    }
+
+    function isOnboardedRider() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/riders/$(request.auth.uid))
+        && riderProfile().data.onboardingComplete == true;
+    }
+
+    match /riders/{riderId} {
+      allow create, read, update: if isOwner(riderId);
+      allow delete: if false;
+    }
+
+    match /orders/{orderId} {
+      // Customer can create only an unassigned pending order for themselves.
+      allow create: if signedIn()
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.assignedRiderId == null;
+
+      // Customer can see their order. Onboarded riders can see pending jobs
+      // and orders assigned to themselves.
+      allow read: if signedIn() && (
+        resource.data.customerId == request.auth.uid
+        || (isOnboardedRider() && (
+          resource.data.status == 'pending'
+          || resource.data.assignedRiderId == request.auth.uid
+        ))
+      );
+
+      // Customer may cancel only their own still-pending order.
+      allow update: if signedIn()
+        && resource.data.customerId == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.status == 'cancelled'
+        && request.resource.data.customerId == resource.data.customerId
+        && request.resource.data.assignedRiderId == null;
+
+      // Rider accepts a pending order atomically.
+      allow update: if isOnboardedRider()
+        && resource.data.status == 'pending'
+        && resource.data.assignedRiderId == null
+        && request.resource.data.status == 'accepted'
+        && request.resource.data.assignedRiderId == request.auth.uid
+        && request.resource.data.customerId == resource.data.customerId;
+
+      // Assigned rider can move the order through the allowed delivery states.
+      allow update: if isOnboardedRider()
+        && resource.data.assignedRiderId == request.auth.uid
+        && request.resource.data.assignedRiderId == request.auth.uid
+        && request.resource.data.customerId == resource.data.customerId
+        && request.resource.data.status in ['accepted', 'arrived_pickup', 'picked_up', 'completed']
+        && (
+          (resource.data.status == 'accepted' && request.resource.data.status in ['arrived_pickup', 'accepted'])
+          || (resource.data.status == 'arrived_pickup' && request.resource.data.status in ['picked_up', 'arrived_pickup'])
+          || (resource.data.status == 'picked_up' && request.resource.data.status in ['completed', 'picked_up'])
+        );
+
+      allow delete: if false;
+    }
+  }
+}
