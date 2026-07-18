@@ -36,14 +36,27 @@ function distanceMeters(from, to) {
   return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function currentReadableAddress() {
+  const value = globalThis.myQkRiderLocationAddress;
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (typeof state.lastPosition?.address === "string" && state.lastPosition.address.trim()) {
+    return state.lastPosition.address.trim();
+  }
+  return "";
+}
+
 function normalizedPosition(position) {
-  return {
+  const location = {
     latitude: Number(position.coords.latitude.toFixed(6)),
     longitude: Number(position.coords.longitude.toFixed(6)),
     accuracy: Math.round(position.coords.accuracy || 0),
     heading: Number.isFinite(position.coords.heading) ? Math.round(position.coords.heading) : null,
     speed: Number.isFinite(position.coords.speed) ? Number(position.coords.speed.toFixed(2)) : null
   };
+
+  const address = currentReadableAddress();
+  if (address) location.address = address;
+  return location;
 }
 
 function shouldTrack() {
@@ -53,12 +66,12 @@ function shouldTrack() {
 }
 
 async function findActiveOrderRef() {
-  const query = state.api.query(
+  const ordersQuery = state.api.query(
     state.api.collection(state.db, "orders"),
     state.api.where("assignedRiderId", "==", state.user.uid),
     state.api.limit(20)
   );
-  const snapshot = await state.api.getDocs(query);
+  const snapshot = await state.api.getDocs(ordersQuery);
   const active = snapshot.docs.find((item) => ACTIVE_STATUSES.includes(item.data().status));
   return active ? state.api.doc(state.db, "orders", active.id) : null;
 }
@@ -76,8 +89,10 @@ async function writeLocation(location, force = false) {
 
   state.writing = true;
   try {
+    const address = location.address || currentReadableAddress();
     const locationPayload = {
       ...location,
+      ...(address ? { address } : {}),
       updatedAt: state.api.serverTimestamp()
     };
 
@@ -96,7 +111,7 @@ async function writeLocation(location, force = false) {
       });
     }
 
-    state.lastPosition = location;
+    state.lastPosition = { ...location, ...(address ? { address } : {}) };
     state.lastWriteAt = Date.now();
   } catch (error) {
     console.error("Rider live location update failed:", error);
@@ -111,7 +126,9 @@ async function writeLocation(location, force = false) {
 }
 
 function handlePosition(position, force = false) {
-  writeLocation(normalizedPosition(position), force);
+  const location = normalizedPosition(position);
+  window.dispatchEvent(new CustomEvent("myqk:rider-position", { detail: location }));
+  writeLocation(location, force);
 }
 
 function requestHeartbeatLocation() {
