@@ -7,5 +7,6 @@ restoreOrderHandlers();
 
 await import("./firestore-orders.js?v=20260718-ready-orders-fix");
 import "./location-address.js";
-import "./rider-live-location.js";
+import "./rider-location-display.js?v=20260718-real-address";
+import "./rider-live-location.js?v=20260718-real-address";
 import "./launch-hardening.js";
