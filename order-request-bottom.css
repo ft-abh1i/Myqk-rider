@@ -1,0 +1,61 @@
+/* Keep the live order request close to the rider's primary actions. */
+#main-screen #home-view #order-request:not(.hidden) {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  z-index: 19;
+  width: auto;
+  max-height: calc(100dvh - 178px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  border-color: #dcdfe4;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, .18);
+  animation: riderOrderRise .22s ease-out;
+}
+
+#main-screen #home-view #order-request:not(.hidden)::-webkit-scrollbar {
+  display: none;
+}
+
+#main-screen #home-view #order-request:not(.hidden) .order-actions {
+  position: sticky;
+  bottom: -1px;
+  z-index: 2;
+  margin: 0 -3px -3px;
+  padding: 10px 3px 3px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff 22%);
+}
+
+@keyframes riderOrderRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-height: 700px) {
+  #main-screen #home-view #order-request:not(.hidden) {
+    left: 11px;
+    right: 11px;
+    bottom: calc(73px + env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 150px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    padding: 15px;
+    border-radius: 18px;
+  }
+
+  #main-screen #home-view #order-request:not(.hidden) .order-card-head {
+    margin-bottom: 13px;
+  }
+
+  #main-screen #home-view #order-request:not(.hidden) .order-meta {
+    margin: 12px 0;
+    padding: 9px 0;
+  }
+}
