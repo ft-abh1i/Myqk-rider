@@ -8,5 +8,5 @@ restoreOrderHandlers();
 await import("./firestore-orders.js?v=20260718-location-radius-policy");
 await import("./location-address.js");
 await import("./rider-location-display.js?v=20260718-real-address");
-await import("./rider-live-location.js?v=20260718-one-minute-policy");
+await import("./rider-live-location.js?v=20260719-live-stream-1");
 await import("./launch-hardening.js");

@@ -29,6 +29,14 @@ const state = {
   unsubActive: null
 };
 
+function announceActiveOrder(order = null) {
+  const detail = order
+    ? { orderId: order.firestoreId, status: order.status }
+    : null;
+  globalThis.myQkActiveOrderId = detail?.orderId || null;
+  window.dispatchEvent(new CustomEvent('myqk:active-order', { detail }));
+}
+
 function toast(message, error = false) {
   const element = $('#toast');
   if (!element) return;
@@ -304,6 +312,7 @@ function listenActive(orderId) {
   state.unsubActive = onSnapshot(doc(db, 'orders', orderId), (snapshot) => {
     if (!snapshot.exists()) {
       state.active = null;
+      announceActiveOrder();
       $('#active-order-card')?.classList.add('hidden');
       return;
     }
@@ -311,11 +320,13 @@ function listenActive(orderId) {
     if (order.raw.assignedRiderId !== state.user?.uid
       || !['accepted', 'arrived_pickup', 'picked_up'].includes(order.status)) {
       state.active = null;
+      announceActiveOrder();
       $('#active-order-card')?.classList.add('hidden');
       nextRequest();
       return;
     }
     state.active = order;
+    announceActiveOrder(order);
     renderActive();
   }, (error) => {
     console.error('Active order listener failed:', error);
@@ -336,6 +347,7 @@ async function recoverActive() {
       .find((order) => ['accepted', 'arrived_pickup', 'picked_up'].includes(order.status));
     if (found && !state.active) {
       state.active = found;
+      announceActiveOrder(found);
       listenActive(found.firestoreId);
       renderActive();
     }
@@ -385,6 +397,7 @@ async function accept() {
       });
     });
     state.active = { ...order, status: 'accepted' };
+    announceActiveOrder(state.active);
     state.visible = null;
     $('#order-request')?.classList.add('hidden');
     listenActive(order.firestoreId);
@@ -429,6 +442,7 @@ async function advance() {
     });
     if (nextStatus === 'completed') {
       state.active = null;
+      announceActiveOrder();
       $('#active-order-card')?.classList.add('hidden');
       toast('Delivery completed.');
       nextRequest();
@@ -528,6 +542,7 @@ onAuthStateChanged(auth, async (user) => {
   state.readyDocs = [];
   state.visible = null;
   state.active = null;
+  announceActiveOrder();
   state.locationCapturedAt = 0;
   if (!user) return;
 
