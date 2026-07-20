@@ -209,7 +209,7 @@ function handleLocationError(error) {
   if (!locationUnavailable && state.locationErrorCount < 3) return;
 
   if (hasActiveDelivery()) {
-    showLocationWarning('Live delivery tracking ke liye location permission aur GPS ON rakho.');
+    showLocationWarning('Keep GPS on and allow location access for live delivery tracking.');
     return;
   }
 
@@ -217,7 +217,7 @@ function handleLocationError(error) {
   if (!toggle?.checked) return;
   toggle.checked = false;
   toggle.dispatchEvent(new Event('change', { bubbles: true }));
-  showLocationWarning('Location unavailable. Rider ko Offline kar diya gaya.');
+  showLocationWarning('Location is unavailable, so you have been switched offline.');
 }
 
 function requestFreshPosition(force = false) {

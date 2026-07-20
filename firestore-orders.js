@@ -255,14 +255,14 @@ function availableOrdersError(error) {
   $('#order-request')?.classList.add('hidden');
   $('#request-count').textContent = '0 available';
   if (error?.code === 'permission-denied') {
-    toast('Rider order permission denied. Latest Firestore rules publish karo.', true);
+    toast('Order access was denied. Publish the latest Firestore rules.', true);
     return;
   }
   if (error?.code === 'failed-precondition') {
-    toast('Firestore index required. Error link se index create karo.', true);
+    toast('A Firestore index is required. Open the error link to create it.', true);
     return;
   }
-  toast('Ready orders load nahi hue. Internet aur Firebase check karo.', true);
+  toast('Ready orders could not be loaded. Check your internet connection and Firebase setup.', true);
 }
 
 function listenAvailable() {
@@ -362,13 +362,13 @@ async function accept() {
   const order = state.visible;
   if (!order || !state.user || state.active) return;
   if (!state.online || !hasFreshLocation()) {
-    toast('Fresh current location ke bina order accept nahi kar sakte.', true);
+    toast('You cannot accept an order without a fresh GPS location.', true);
     return;
   }
   if (!Number.isFinite(order.kmToPickup) || order.kmToPickup > MAX_ORDER_RADIUS_KM) {
     state.visible = null;
     applyRadiusFilter();
-    toast(`Sirf ${MAX_ORDER_RADIUS_KM} km radius ke orders accept kar sakte ho.`, true);
+    toast(`You can only accept orders within ${MAX_ORDER_RADIUS_KM} km of your current location.`, true);
     return;
   }
 
@@ -405,10 +405,10 @@ async function accept() {
     toast('Order accepted.');
   } catch (error) {
     console.error('Order acceptance failed:', error);
-    if (error.message === 'TAKEN') toast('Ye order kisi aur rider ne accept kar liya.', true);
-    else if (error.message === 'OUT_OF_RADIUS') toast(`Order ${MAX_ORDER_RADIUS_KM} km radius ke bahar hai.`, true);
-    else if (error?.code === 'permission-denied') toast('Accept permission denied. Latest Firestore rules publish karo.', true);
-    else toast('Order accept nahi hua.', true);
+    if (error.message === 'TAKEN') toast('Another rider has already accepted this order.', true);
+    else if (error.message === 'OUT_OF_RADIUS') toast(`This order is outside your ${MAX_ORDER_RADIUS_KM} km delivery radius.`, true);
+    else if (error?.code === 'permission-denied') toast('Order acceptance was denied. Publish the latest Firestore rules.', true);
+    else toast('The order could not be accepted.', true);
     nextRequest();
   } finally {
     button.disabled = false;
@@ -450,7 +450,7 @@ async function advance() {
   } catch (error) {
     console.error('Order status update failed:', error);
     toast(error?.code === 'permission-denied'
-      ? 'Order update permission denied. Firestore rules publish karo.'
+      ? 'The order update was denied. Publish the latest Firestore rules.'
       : 'Order update failed.', true);
   } finally {
     button.disabled = false;
@@ -479,7 +479,7 @@ $('#online-toggle')?.addEventListener('change', async (event) => {
       await savePresence();
     } catch (error) {
       console.error('Offline status save failed:', error);
-      toast('Offline status save nahi hua.', true);
+      toast('Your offline status could not be saved.', true);
     } finally {
       toggle.disabled = false;
     }
@@ -487,7 +487,7 @@ $('#online-toggle')?.addEventListener('change', async (event) => {
   }
 
   setOnlineUi(false);
-  toast('Current location verify ho rahi hai…');
+  toast('Verifying your current location…');
   try {
     await captureFreshLocation();
     setOnlineUi(true);
@@ -498,7 +498,7 @@ $('#online-toggle')?.addEventListener('change', async (event) => {
     console.error('Current location verification failed:', error);
     setOnlineUi(false);
     await savePresence().catch(() => {});
-    toast('Location ON karke current location allow karo. Tabhi online ho sakte ho.', true);
+    toast('Turn on location services and allow current-location access before going online.', true);
   } finally {
     toggle.disabled = false;
   }
@@ -559,6 +559,6 @@ onAuthStateChanged(auth, async (user) => {
     recoverActive();
   } catch (error) {
     console.error('Rider profile load failed:', error);
-    toast('Rider profile load nahi hua.', true);
+    toast('Your rider profile could not be loaded.', true);
   }
 });
