@@ -5,6 +5,7 @@ const restoreOrderHandlers = suppressDemoOrderHandlers();
 await import("./app-core.js");
 restoreOrderHandlers();
 
+await import("./rider-auto-authorization.js?v=20260731-auto-auth-1");
 await import("./firestore-orders.js?v=20260731-order-sync-1");
 await import("./location-address.js");
 await import("./rider-location-display.js?v=20260718-real-address");
