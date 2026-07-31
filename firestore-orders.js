@@ -1,7 +1,24 @@
 import { firebaseConfig } from './firebase-config.js';
 import { getApp, getApps, initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-import { collection, doc, getDoc, getFirestore, limit, onSnapshot, query, runTransaction, serverTimestamp, setDoc, where } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import {
+  collection,
+  count,
+  doc,
+  getAggregateFromServer,
+  getDoc,
+  getDocs,
+  getFirestore,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+  sum,
+  where
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -10,6 +27,8 @@ const $ = (selector) => document.querySelector(selector);
 
 const MAX_ORDER_RADIUS_KM = 20;
 const LOCATION_FRESHNESS_MS = 90_000;
+const SKIP_DURATION_MS = 90_000;
+const ACTIVE_STATUSES = ['accepted', 'arrived_pickup', 'picked_up'];
 const LOCATION_OPTIONS = {
   enableHighAccuracy: true,
   timeout: 15_000,
@@ -24,9 +43,13 @@ const state = {
   readyDocs: [],
   visible: null,
   active: null,
+  history: [],
+  orderFilter: 'all',
+  skippedUntil: new Map(),
   locationCapturedAt: 0,
   unsubAvailable: null,
-  unsubActive: null
+  unsubActive: null,
+  unsubHistory: null
 };
 
 function announceActiveOrder(order = null) {
@@ -51,6 +74,23 @@ function toast(message, error = false) {
 function number(value, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function escapeHtml(value = '') {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[character]);
+}
+
+function timestampDate(value) {
+  if (typeof value?.toDate === 'function') return value.toDate();
+  if (Number.isFinite(value?.seconds)) return new Date(value.seconds * 1000);
+  const parsed = new Date(value || 0);
+  return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed;
 }
 
 function validCoordinates(value) {
@@ -222,8 +262,15 @@ function fillRequest(order) {
 
 function nextRequest() {
   if (!state.online || state.active) return;
-  const next = state.available.find((order) => order.firestoreId !== state.visible?.firestoreId)
-    || state.available[0];
+  const now = Date.now();
+  for (const [orderId, expiresAt] of state.skippedUntil) {
+    if (expiresAt <= now) state.skippedUntil.delete(orderId);
+  }
+  const candidates = state.available.filter(
+    (order) => !state.skippedUntil.has(order.firestoreId)
+  );
+  const next = candidates.find((order) => order.firestoreId !== state.visible?.firestoreId)
+    || candidates[0];
   if (next) {
     fillRequest(next);
     return;
@@ -270,6 +317,7 @@ function listenAvailable() {
   const readyOrdersQuery = query(
     collection(db, 'orders'),
     where('status', '==', 'ready_for_pickup'),
+    orderBy('readyAt', 'desc'),
     limit(50)
   );
   state.unsubAvailable = onSnapshot(readyOrdersQuery, (snapshot) => {
@@ -318,10 +366,11 @@ function listenActive(orderId) {
     }
     const order = normalize(snapshot);
     if (order.raw.assignedRiderId !== state.user?.uid
-      || !['accepted', 'arrived_pickup', 'picked_up'].includes(order.status)) {
+      || !ACTIVE_STATUSES.includes(order.status)) {
       state.active = null;
       announceActiveOrder();
       $('#active-order-card')?.classList.add('hidden');
+      clearActiveProfile(orderId);
       nextRequest();
       return;
     }
@@ -335,27 +384,70 @@ function listenActive(orderId) {
 }
 
 async function recoverActive() {
+  const savedOrderId = state.profile?.activeOrderId;
+  if (savedOrderId) {
+    try {
+      const savedSnapshot = await getDoc(doc(db, 'orders', savedOrderId));
+      if (
+        savedSnapshot.exists()
+        && savedSnapshot.data().assignedRiderId === state.user.uid
+        && ACTIVE_STATUSES.includes(savedSnapshot.data().status)
+      ) {
+        const found = normalize(savedSnapshot);
+        state.active = found;
+        announceActiveOrder(found);
+        listenActive(found.firestoreId);
+        renderActive();
+        return;
+      }
+    } catch (error) {
+      console.error('Saved active order recovery failed:', error);
+    }
+  }
+
   const activeOrdersQuery = query(
     collection(db, 'orders'),
     where('assignedRiderId', '==', state.user.uid),
+    where('status', 'in', ACTIVE_STATUSES),
     limit(10)
   );
-  let unsubscribe = null;
-  unsubscribe = onSnapshot(activeOrdersQuery, (snapshot) => {
-    const found = snapshot.docs
-      .map(normalize)
-      .find((order) => ['accepted', 'arrived_pickup', 'picked_up'].includes(order.status));
+  try {
+    const snapshot = await getDocs(activeOrdersQuery);
+    const found = snapshot.docs.map(normalize)[0];
     if (found && !state.active) {
       state.active = found;
       announceActiveOrder(found);
       listenActive(found.firestoreId);
       renderActive();
+      await setDoc(doc(db, 'riders', state.user.uid), {
+        activeOrderId: found.firestoreId,
+        activeOrderStatus: found.status,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } else if (!found && savedOrderId) {
+      await clearActiveProfile(savedOrderId);
     }
-    unsubscribe?.();
-  }, (error) => {
+  } catch (error) {
     console.error('Active order recovery failed:', error);
-    unsubscribe?.();
-  });
+  }
+}
+
+async function clearActiveProfile(expectedOrderId) {
+  if (!state.user || (state.active && state.active.firestoreId !== expectedOrderId)) return;
+  state.profile = {
+    ...(state.profile || {}),
+    activeOrderId: null,
+    activeOrderStatus: null
+  };
+  try {
+    await setDoc(doc(db, 'riders', state.user.uid), {
+      activeOrderId: null,
+      activeOrderStatus: null,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error('Rider active-order profile cleanup failed:', error);
+  }
 }
 
 async function accept() {
@@ -377,11 +469,21 @@ async function accept() {
   button.textContent = 'Accepting…';
   try {
     const orderRef = doc(db, 'orders', order.firestoreId);
+    const riderRef = doc(db, 'riders', state.user.uid);
     await runTransaction(db, async (transaction) => {
-      const snapshot = await transaction.get(orderRef);
-      if (!snapshot.exists()) throw new Error('NOT_FOUND');
+      const [snapshot, riderSnapshot] = await Promise.all([
+        transaction.get(orderRef),
+        transaction.get(riderRef)
+      ]);
+      if (!snapshot.exists() || !riderSnapshot.exists()) throw new Error('NOT_FOUND');
       const data = snapshot.data();
+      const rider = riderSnapshot.data();
       if (data.status !== 'ready_for_pickup' || data.assignedRiderId) throw new Error('TAKEN');
+      if (
+        rider.activeOrderId
+        && rider.activeOrderId !== order.firestoreId
+        && ACTIVE_STATUSES.includes(rider.activeOrderStatus)
+      ) throw new Error('ACTIVE_EXISTS');
       const pickupLocation = data.pickup?.location || data.pickupLocation;
       const liveDistance = km(state.profile.location, pickupLocation);
       if (!Number.isFinite(liveDistance) || liveDistance > MAX_ORDER_RADIUS_KM) {
@@ -395,7 +497,17 @@ async function accept() {
         acceptedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
+      transaction.update(riderRef, {
+        activeOrderId: order.firestoreId,
+        activeOrderStatus: 'accepted',
+        updatedAt: serverTimestamp()
+      });
     });
+    state.profile = {
+      ...(state.profile || {}),
+      activeOrderId: order.firestoreId,
+      activeOrderStatus: 'accepted'
+    };
     state.active = { ...order, status: 'accepted' };
     announceActiveOrder(state.active);
     state.visible = null;
@@ -406,6 +518,7 @@ async function accept() {
   } catch (error) {
     console.error('Order acceptance failed:', error);
     if (error.message === 'TAKEN') toast('Another rider has already accepted this order.', true);
+    else if (error.message === 'ACTIVE_EXISTS') toast('Complete your active delivery before accepting another.', true);
     else if (error.message === 'OUT_OF_RADIUS') toast(`This order is outside your ${MAX_ORDER_RADIUS_KM} km delivery radius.`, true);
     else if (error?.code === 'permission-denied') toast('Order acceptance was denied. Publish the latest Firestore rules.', true);
     else toast('The order could not be accepted.', true);
@@ -429,9 +542,13 @@ async function advance() {
   button.disabled = true;
   try {
     const orderRef = doc(db, 'orders', order.firestoreId);
+    const riderRef = doc(db, 'riders', state.user.uid);
     await runTransaction(db, async (transaction) => {
-      const snapshot = await transaction.get(orderRef);
-      if (!snapshot.exists()) throw new Error('NOT_FOUND');
+      const [snapshot, riderSnapshot] = await Promise.all([
+        transaction.get(orderRef),
+        transaction.get(riderRef)
+      ]);
+      if (!snapshot.exists() || !riderSnapshot.exists()) throw new Error('NOT_FOUND');
       const data = snapshot.data();
       if (data.assignedRiderId !== state.user.uid || data.status !== order.status) throw new Error('INVALID');
       const patch = { status: nextStatus, updatedAt: serverTimestamp() };
@@ -439,7 +556,17 @@ async function advance() {
       if (nextStatus === 'picked_up') patch.pickedUpAt = serverTimestamp();
       if (nextStatus === 'completed') patch.completedAt = serverTimestamp();
       transaction.update(orderRef, patch);
+      transaction.update(riderRef, {
+        activeOrderId: nextStatus === 'completed' ? null : order.firestoreId,
+        activeOrderStatus: nextStatus === 'completed' ? null : nextStatus,
+        updatedAt: serverTimestamp()
+      });
     });
+    state.profile = {
+      ...(state.profile || {}),
+      activeOrderId: nextStatus === 'completed' ? null : order.firestoreId,
+      activeOrderStatus: nextStatus === 'completed' ? null : nextStatus
+    };
     if (nextStatus === 'completed') {
       state.active = null;
       announceActiveOrder();
@@ -461,11 +588,20 @@ function openNavigation() {
   const order = state.active;
   if (!order) return;
   const target = order.status === 'picked_up' ? order.dropLocation : order.pickupLocation;
-  if (!validCoordinates(target)) {
+  const address = order.status === 'picked_up' ? order.dropAddress : order.pickupAddress;
+  let destination = address;
+  if (validCoordinates(target)) {
+    destination = `${Number(target.latitude ?? target.lat)},${Number(target.longitude ?? target.lng)}`;
+  }
+  if (!destination) {
     toast('Location unavailable.', true);
     return;
   }
-  window.open(`https://www.google.com/maps/dir/?api=1&destination=${target.latitude},${target.longitude}`, '_blank');
+  window.open(
+    `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`,
+    '_blank',
+    'noopener'
+  );
 }
 
 $('#online-toggle')?.addEventListener('change', async (event) => {
@@ -506,6 +642,14 @@ $('#online-toggle')?.addEventListener('change', async (event) => {
 
 $('#accept-order-btn')?.addEventListener('click', accept);
 $('#reject-order-btn')?.addEventListener('click', () => {
+  const skippedId = state.visible?.firestoreId;
+  if (skippedId) {
+    state.skippedUntil.set(skippedId, Date.now() + SKIP_DURATION_MS);
+    window.setTimeout(() => {
+      state.skippedUntil.delete(skippedId);
+      if (state.online && !state.active) nextRequest();
+    }, SKIP_DURATION_MS);
+  }
   state.visible = null;
   nextRequest();
 });
@@ -534,14 +678,176 @@ window.addEventListener('myqk:rider-position', (event) => {
   applyRadiusFilter();
 });
 
+function renderHistory() {
+  const list = $('#orders-list');
+  if (!list) return;
+  const orders = state.history.filter(
+    (order) => state.orderFilter === 'all' || order.status === state.orderFilter
+  );
+  if (!orders.length) {
+    list.innerHTML = '<div class="empty-list">No orders in this section yet.</div>';
+    return;
+  }
+
+  list.innerHTML = orders.map((order) => {
+    const date = timestampDate(
+      order.raw.completedAt
+      || order.raw.cancelledAt
+      || order.raw.updatedAt
+      || order.raw.createdAt
+    ).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const status = escapeHtml(order.status || 'unknown');
+    return `<article class="history-card">
+      <div class="history-head"><div><h4>Order #${escapeHtml(order.id)}</h4><p>${escapeHtml(date)}</p></div><span class="history-status ${status}">${status.replaceAll('_', ' ')}</span></div>
+      <div class="history-route"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg><span>${escapeHtml(order.pickup)} → ${escapeHtml(order.drop)}</span></div>
+      <div class="history-foot"><span>${escapeHtml(order.distance)}</span><strong>${order.status === 'completed' ? `+₹${order.payout.toLocaleString('en-IN')}` : '₹0'}</strong></div>
+    </article>`;
+  }).join('');
+}
+
+function renderEarnings() {
+  const completed = state.history.filter((order) => order.status === 'completed');
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const week = new Date(today);
+  const daysFromMonday = (week.getDay() + 6) % 7;
+  week.setDate(week.getDate() - daysFromMonday);
+
+  const completedAt = (order) => timestampDate(order.raw.completedAt || order.raw.updatedAt);
+  const total = completed.reduce((sum, order) => sum + order.payout, 0);
+  const todayOrders = completed.filter((order) => completedAt(order) >= today);
+  const weekOrders = completed.filter((order) => completedAt(order) >= week);
+  const todayTotal = todayOrders.reduce((sum, order) => sum + order.payout, 0);
+  const weekTotal = weekOrders.reduce((sum, order) => sum + order.payout, 0);
+  const money = (value) => `₹${number(value).toLocaleString('en-IN')}`;
+
+  $('#today-earnings').textContent = money(todayTotal);
+  $('#today-deliveries').textContent = String(todayOrders.length);
+  $('#available-balance').textContent = money(total);
+  $('#earnings-today').textContent = money(todayTotal);
+  $('#earnings-week').textContent = money(weekTotal);
+  $('#earnings-total').textContent = money(total);
+  $('#profile-deliveries').textContent = String(completed.length);
+
+  const list = $('#transactions-list');
+  if (!list) return;
+  if (!completed.length) {
+    list.innerHTML = '<div class="empty-list">Completed delivery earnings will appear here.</div>';
+    return;
+  }
+  list.innerHTML = completed.map((order) => {
+    const date = completedAt(order).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return `<article class="transaction-card">
+      <span class="transaction-icon"><svg viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></svg></span>
+      <div><h4>Delivery #${escapeHtml(order.id)}</h4><p>${escapeHtml(date)}</p></div><strong>+₹${order.payout.toLocaleString('en-IN')}</strong>
+    </article>`;
+  }).join('');
+}
+
+async function refreshEarningsTotals() {
+  const riderId = state.user?.uid;
+  if (!riderId) return;
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const week = new Date(today);
+  week.setDate(week.getDate() - ((week.getDay() + 6) % 7));
+  const completedOrders = [
+    where('assignedRiderId', '==', riderId),
+    where('status', '==', 'completed')
+  ];
+
+  try {
+    const [totalSnapshot, todaySnapshot, weekSnapshot] = await Promise.all([
+      getAggregateFromServer(
+        query(collection(db, 'orders'), ...completedOrders),
+        { payout: sum('riderPayout'), deliveries: count() }
+      ),
+      getAggregateFromServer(
+        query(
+          collection(db, 'orders'),
+          ...completedOrders,
+          where('completedAt', '>=', today)
+        ),
+        { payout: sum('riderPayout'), deliveries: count() }
+      ),
+      getAggregateFromServer(
+        query(
+          collection(db, 'orders'),
+          ...completedOrders,
+          where('completedAt', '>=', week)
+        ),
+        { payout: sum('riderPayout') }
+      )
+    ]);
+    if (state.user?.uid !== riderId) return;
+
+    const total = totalSnapshot.data();
+    const todayData = todaySnapshot.data();
+    const weekData = weekSnapshot.data();
+    const money = (value) => `₹${number(value).toLocaleString('en-IN')}`;
+    $('#today-earnings').textContent = money(todayData.payout);
+    $('#today-deliveries').textContent = String(number(todayData.deliveries));
+    $('#available-balance').textContent = money(total.payout);
+    $('#earnings-today').textContent = money(todayData.payout);
+    $('#earnings-week').textContent = money(weekData.payout);
+    $('#earnings-total').textContent = money(total.payout);
+    $('#profile-deliveries').textContent = String(number(total.deliveries));
+  } catch (error) {
+    console.error('Rider earnings totals could not refresh:', error);
+  }
+}
+
+function listenHistory() {
+  state.unsubHistory?.();
+  const historyQuery = query(
+    collection(db, 'orders'),
+    where('assignedRiderId', '==', state.user.uid),
+    orderBy('updatedAt', 'desc'),
+    limit(100)
+  );
+  state.unsubHistory = onSnapshot(historyQuery, (snapshot) => {
+    state.history = snapshot.docs.map(normalize);
+    renderHistory();
+    renderEarnings();
+    refreshEarningsTotals();
+  }, (error) => {
+    console.error('Rider history listener failed:', error);
+    toast('Order history could not load. Firestore rules or index may be missing.', true);
+  });
+}
+
+document.querySelectorAll('.order-tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.order-tab').forEach((item) => item.classList.remove('active'));
+    tab.classList.add('active');
+    state.orderFilter = tab.dataset.filter || 'all';
+    renderHistory();
+  });
+});
+
 onAuthStateChanged(auth, async (user) => {
   state.user = user;
   state.unsubAvailable?.();
   state.unsubActive?.();
+  state.unsubHistory?.();
   state.available = [];
   state.readyDocs = [];
   state.visible = null;
   state.active = null;
+  state.history = [];
+  state.skippedUntil.clear();
   announceActiveOrder();
   state.locationCapturedAt = 0;
   if (!user) return;
@@ -556,6 +862,7 @@ onAuthStateChanged(auth, async (user) => {
     setOnlineUi(false);
     if (state.profile.isOnline) await savePresence().catch(() => {});
     listenAvailable();
+    listenHistory();
     recoverActive();
   } catch (error) {
     console.error('Rider profile load failed:', error);

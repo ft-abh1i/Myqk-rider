@@ -92,6 +92,7 @@ async function findActiveOrderRef() {
   const ordersQuery = state.api.query(
     state.api.collection(state.db, 'orders'),
     state.api.where('assignedRiderId', '==', state.user.uid),
+    state.api.where('status', 'in', ACTIVE_STATUSES),
     state.api.limit(20)
   );
   const snapshot = await state.api.getDocs(ordersQuery);

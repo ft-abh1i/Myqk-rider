@@ -18,6 +18,7 @@ export function suppressDemoOrderHandlers() {
   EventTarget.prototype.addEventListener = function guardedAddEventListener(type, listener, options) {
     const expectedType = this instanceof Element ? REAL_ORDER_CONTROLS.get(this.id) : null;
     if (expectedType && expectedType === type) return;
+    if (this instanceof Element && this.classList.contains('order-tab') && type === 'click') return;
     return original.call(this, type, listener, options);
   };
 

@@ -1,120 +1,55 @@
-# MyQK Rider — Firebase MVP setup
+# MyQK Rider — Firebase setup
 
-This MVP uses Firebase Authentication + Cloud Firestore only. Cloud Functions are not required.
+The customer, merchant, and rider apps share the Firebase project
+`buyqk-rider`.
 
-## 1. Firebase console
+## Firebase configuration
 
-Use the existing Firebase project `buyqk-rider`.
+1. Enable Google sign-in for merchant and rider, and Anonymous sign-in for the
+   customer app.
+2. Add every deployed domain under Authentication → Authorized domains.
+3. Deploy the unified rules and composite indexes:
 
-1. Authentication → Sign-in method → enable **Google**.
-2. Authentication → Settings → Authorized domains → add the Vercel production domain.
-3. Firestore Database → create database in production mode.
-4. Firestore Database → Rules → paste the complete contents of `firestore.rules` and publish.
+   ```bash
+   firebase deploy --only firestore
+   ```
 
-## 2. Required collections
+The checked-in `firestore.rules` and `firestore.indexes.json` are the same in
+all three repositories. Deploy them from one repository only.
 
-### `riders/{firebaseAuthUid}`
+## Order lifecycle
 
-Created automatically after rider onboarding.
+Customer orders begin at `pending_merchant`. The merchant moves a valid,
+stock-reserved order through:
 
-Important fields:
-
-```js
-{
-  uid: "firebase-auth-uid",
-  fullName: "Rider name",
-  onboardingComplete: true,
-  status: "offline",
-  isOnline: false,
-  location: {
-    latitude: 25.61,
-    longitude: 85.14
-  }
-}
+```text
+pending_merchant → merchant_accepted → preparing → ready_for_pickup
 ```
 
-### `orders/{orderId}`
+An online rider within 20 km can then accept it and move through:
 
-The customer app must create orders in this format:
-
-```js
-{
-  orderNumber: "QK1001",
-  customerId: "firebase-customer-auth-uid",
-  customerName: "Customer name",
-  customerPhone: "+919999999999",
-  status: "pending",
-  assignedRiderId: null,
-  pickup: {
-    name: "Fresh Basket",
-    address: "Bailey Road, Patna",
-    location: {
-      latitude: 25.615,
-      longitude: 85.11
-    }
-  },
-  drop: {
-    name: "Customer",
-    address: "Boring Road, Patna",
-    location: {
-      latitude: 25.62,
-      longitude: 85.12
-    }
-  },
-  itemCount: 3,
-  paymentMode: "Prepaid",
-  riderPayout: 42,
-  distanceKm: 4.8,
-  durationText: "22 min",
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp()
-}
+```text
+ready_for_pickup → accepted → arrived_pickup → picked_up → completed
 ```
 
-## 3. Customer-app order creation
+Rider acceptance updates both `orders/{orderId}` and
+`riders/{riderUid}.activeOrderId` in one transaction. The rules reject a second
+active order until the current delivery is completed.
 
-Use the signed-in customer's UID. Do not create anonymous public orders.
+## Test flow
 
-```js
-import {
-  addDoc,
-  collection,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+1. Create and approve a merchant store, then add a product with stock.
+2. Place an order from the customer app.
+3. Accept it in the merchant app; the product stock is reserved atomically.
+4. Mark it ready for pickup.
+5. Complete rider onboarding, enable current location, and go online.
+6. Accept and complete the delivery.
+7. Confirm that the real order appears in Rider Orders and its payout appears
+   in Rider Earnings.
 
-await addDoc(collection(db, "orders"), {
-  orderNumber: `QK${Date.now().toString().slice(-6)}`,
-  customerId: auth.currentUser.uid,
-  customerName,
-  customerPhone,
-  status: "pending",
-  assignedRiderId: null,
-  pickup,
-  drop,
-  itemCount: cartItems.length,
-  paymentMode: "Prepaid",
-  riderPayout: 42,
-  distanceKm: 4.8,
-  durationText: "22 min",
-  createdAt: serverTimestamp(),
-  updatedAt: serverTimestamp()
-});
-```
+## Production follow-ups
 
-## 4. Test flow
-
-1. Sign in to the rider app and finish onboarding with location permission.
-2. Publish the Firestore rules.
-3. Create one `pending` order while signed in as a different customer account.
-4. Set the rider online.
-5. The nearest pending order within 8 km appears automatically.
-6. Accept it from two rider devices at the same time; only the first transaction succeeds.
-7. Move through arrived → picked up → completed.
-
-## MVP limitations
-
-- Rider app must remain open for realtime requests.
-- No background push notification yet.
-- No automatic server-side dispatch.
-- Distance filtering is calculated in the rider browser.
-- Before production, add admin verification, App Check, payment reconciliation, audit logs, and a trusted backend.
+- Add Firebase App Check.
+- Move dispatch notifications and payment reconciliation to a trusted backend.
+- Add admin identity, licence, bank, and background verification for riders.
+- Add audit logging and payout settlement records.
