@@ -1,4 +1,4 @@
-import { firebaseConfig } from "./firebase-config.js";
+import { firebaseConfig } from './firebase-config.js?v=20260802-buyqk-app-1';
 
 const FIREBASE_VERSION = "10.12.5";
 const hasFirebaseConfig = Boolean(
